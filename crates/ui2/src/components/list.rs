@@ -483,16 +483,22 @@ impl<S: 'static + Send + Sync + Clone> List<S> {
         self
     }
 
+    pub fn set_toggleable(mut self, toggleable: Toggleable) -> Self {
+        self.toggleable = toggleable;
+        self
+    }
+
     fn render(&mut self, _view: &mut S, cx: &mut ViewContext<S>) -> impl Element<ViewState = S> {
         let theme = theme(cx);
         let token = token();
         let is_toggleable = self.toggleable != Toggleable::NotToggleable;
         let is_toggled = Toggleable::is_toggled(&self.toggleable);
 
-        let list_content = match (self.items.is_empty(), is_toggled) {
-            (_, false) => div(),
-            (false, _) => div().children(self.items.iter().cloned()),
-            (true, _) => div().child(Label::new(self.empty_message).color(LabelColor::Muted)),
+        let list_content = match (self.items.is_empty(), is_toggled, is_toggleable) {
+            (_, _, false) => div().children(self.items.iter().cloned()),
+            (_, false, true) => div(),
+            (false, _, _) => div().children(self.items.iter().cloned()),
+            (true, _, _) => div().child(Label::new(self.empty_message).color(LabelColor::Muted)),
         };
 
         v_stack()

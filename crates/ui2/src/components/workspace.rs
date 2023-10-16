@@ -1,7 +1,7 @@
 use chrono::DateTime;
 use gpui3::{px, relative, view, Context, Size, View};
 
-use crate::prelude::*;
+use crate::{prelude::*, NotificationsPanel};
 use crate::{
     theme, v_stack, AssistantPanel, ChatMessage, ChatPanel, CollabPanel, EditorPane, Label,
     LanguageSelector, Pane, PaneGroup, Panel, PanelAllowedSides, PanelSide, ProjectPanel,
@@ -230,8 +230,8 @@ impl Workspace {
                     .children(
                         Some(
                             Panel::new(self.right_panel_scroll_state.clone())
-                                .side(PanelSide::Right)
-                                .child(div().w_96().h_full().child("Notifications")),
+                                .side(PanelSide::Left)
+                                .child(NotificationsPanel::new(ScrollState::default())),
                         )
                         .filter(|_| self.is_notifications_panel_open()),
                     )
