@@ -1,10 +1,7 @@
 use std::marker::PhantomData;
 
-use crate::prelude::*;
-use crate::{
-    static_project_panel_project_items, static_project_panel_single_items, theme, Input, List,
-    ListHeader,
-};
+use crate::{prelude::*, static_notification_items};
+use crate::{theme, Input, List, ListHeader};
 
 #[derive(Element)]
 pub struct NotificationsPanel<S: 'static + Send + Sync + Clone> {
@@ -38,7 +35,7 @@ impl<S: 'static + Send + Sync + Clone> NotificationsPanel<S> {
                     .flex_col()
                     .overflow_y_scroll(ScrollState::default())
                     .child(
-                        List::new(static_project_panel_single_items())
+                        List::new(static_notification_items())
                             .header(ListHeader::new("NOTIFICATIONS"))
                             .set_toggleable(Toggleable::NotToggleable)
                             .empty_message("No unread notifications."),

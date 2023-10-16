@@ -466,6 +466,20 @@ pub fn static_project_panel_single_items<S: 'static + Send + Sync + Clone>() -> 
     .collect()
 }
 
+pub fn static_notification_items<S: 'static + Send + Sync + Clone>() -> Vec<ListItem<S>> {
+    vec![
+        ListEntry::new(Label::new("maxbrunsfeld acceped your contact request."))
+            .set_left_icon(Icon::Check.into())
+            .set_indent_level(0),
+        ListEntry::new(Label::new("nathansobo acceped your contact request."))
+            .set_left_icon(Icon::Check.into())
+            .set_indent_level(0),
+    ]
+    .into_iter()
+    .map(From::from)
+    .collect()
+}
+
 pub fn static_collab_panel_current_call<S: 'static + Send + Sync + Clone>() -> Vec<ListItem<S>> {
     vec![
         ListEntry::new(Label::new("as-cii")).set_left_avatar("http://github.com/as-cii.png?s=50"),
