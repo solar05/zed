@@ -471,6 +471,14 @@ pub fn static_notification_items<S: 'static + Send + Sync + Clone>() -> Vec<List
         ListEntry::new(Label::new("maxbrunsfeld acceped your contact request."))
             .set_left_icon(Icon::Check.into())
             .set_indent_level(0),
+        ListEntry::new(
+            Label::new("nathansobo acceped your contact request.").color(LabelColor::Muted),
+        )
+        .set_left_icon(Icon::Check.into())
+        .set_indent_level(0),
+        ListEntry::new(Label::new("nathansobo acceped your contact request."))
+            .set_left_icon(Icon::Check.into())
+            .set_indent_level(0),
         ListEntry::new(Label::new("nathansobo acceped your contact request."))
             .set_left_icon(Icon::Check.into())
             .set_indent_level(0),

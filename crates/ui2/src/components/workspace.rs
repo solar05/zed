@@ -1,7 +1,7 @@
 use chrono::DateTime;
 use gpui3::{px, relative, view, Context, Size, View};
 
-use crate::{prelude::*, NotificationsPanel};
+use crate::{prelude::*, Button, NotificationToast, NotificationsPanel};
 use crate::{
     theme, v_stack, AssistantPanel, ChatMessage, ChatPanel, CollabPanel, EditorPane, Label,
     LanguageSelector, Pane, PaneGroup, Panel, PanelAllowedSides, PanelSide, ProjectPanel,
@@ -255,13 +255,13 @@ impl Workspace {
                 )
                 .filter(|_| self.is_language_selector_open()),
             )
-            .child(Toast::new(ToastOrigin::Bottom).child(Label::new("A toast")))
+            .child(Toast::new(ToastOrigin::Bottom).child(Label::new("maxbrunsfeld accepted your contact request.")))
         // .child(Toast::new(ToastOrigin::BottomRight).child(Label::new("Another toast")))
-        // .child(NotificationToast::new(
-        //     "Can't pull changes from origin",
-        //     "Your local branch is behind the remote branch. Please pull the latest changes before pushing.",
-        //     Button::new("Stash & Switch").variant(ButtonVariant::Filled),
-        // ).secondary_action(Button::new("Cancel")))
+        .child(NotificationToast::new(
+            "Can't pull changes from origin",
+            "Your local branch is behind the remote branch. Please pull the latest changes before pushing.",
+            Button::new("Stash & Switch").variant(ButtonVariant::Filled),
+        ).secondary_action(Button::new("Cancel")))
     }
 }
 
