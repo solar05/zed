@@ -10,14 +10,17 @@ use crate::theme::theme;
 pub enum LabelColor {
     #[default]
     Default,
-    Muted,
+    Accent,
     Created,
-    Modified,
     Deleted,
     Disabled,
     Hidden,
+    Modified,
+    Muted,
     Placeholder,
-    Accent,
+    Positive,
+    Negative,
+    Warning,
 }
 
 impl LabelColor {
@@ -28,12 +31,15 @@ impl LabelColor {
             Self::Default => theme.middle.base.default.foreground,
             Self::Muted => theme.middle.variant.default.foreground,
             Self::Created => theme.middle.positive.default.foreground,
+            Self::Positive => theme.middle.positive.default.foreground,
             Self::Modified => theme.middle.warning.default.foreground,
             Self::Deleted => theme.middle.negative.default.foreground,
             Self::Disabled => theme.middle.base.disabled.foreground,
             Self::Hidden => theme.middle.variant.default.foreground,
             Self::Placeholder => theme.middle.base.disabled.foreground,
             Self::Accent => theme.middle.accent.default.foreground,
+            Self::Negative => theme.middle.negative.default.foreground,
+            Self::Warning => theme.middle.warning.default.foreground,
         }
     }
 }

@@ -1,6 +1,6 @@
 use std::marker::PhantomData;
 
-use gpui3::{AbsoluteLength, AnyElement};
+use gpui3::{rems, AbsoluteLength, AnyElement};
 use smallvec::SmallVec;
 
 use crate::{prelude::*, theme};
@@ -118,7 +118,7 @@ impl<S: 'static + Send + Sync> Panel<S> {
                     .flex_initial()
                     .h_full()
                     // .w(current_width)
-                    .w_80()
+                    .w(rems(40.))
                     .fill(theme.middle.base.default.background)
                     .border_l()
                     .border_color(theme.middle.base.default.border);

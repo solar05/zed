@@ -36,7 +36,7 @@ impl Workspace {
             show_assistant_panel: false,
             show_terminal: true,
             show_language_selector: false,
-            show_notifications_panel: true,
+            show_notifications_panel: false,
             left_panel_scroll_state: ScrollState::default(),
             right_panel_scroll_state: ScrollState::default(),
             tab_bar_scroll_state: ScrollState::default(),
@@ -255,13 +255,16 @@ impl Workspace {
                 )
                 .filter(|_| self.is_language_selector_open()),
             )
-            .child(Toast::new(ToastOrigin::Bottom).child(Label::new("maxbrunsfeld accepted your contact request.")))
+            .child(
+                Toast::new(ToastOrigin::Bottom)
+                    .child(Label::new("maxbrunsfeld accepted your contact request.")),
+            )
         // .child(Toast::new(ToastOrigin::BottomRight).child(Label::new("Another toast")))
-        .child(NotificationToast::new(
-            "Can't pull changes from origin",
-            "Your local branch is behind the remote branch. Please pull the latest changes before pushing.",
-            Button::new("Stash & Switch").variant(ButtonVariant::Filled),
-        ).secondary_action(Button::new("Cancel")))
+        // .child(NotificationToast::new(
+        //     "Can't pull changes from origin",
+        //     "Your local branch is behind the remote branch. Please pull the latest changes before pushing.",
+        //     Button::new("Stash & Switch").variant(ButtonVariant::Filled),
+        // ).secondary_action(Button::new("Cancel")))
     }
 }
 
