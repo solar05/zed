@@ -16,6 +16,14 @@ impl<S: 'static + Send + Sync> Default for IconButtonHandlers<S> {
     }
 }
 
+impl<S: 'static + Send + Sync> From<ClickHandler<S>> for IconButtonHandlers<S> {
+    fn from(handler: ClickHandler<S>) -> Self {
+        Self {
+            click: Some(Arc::new(handler)),
+        }
+    }
+}
+
 #[derive(Element)]
 pub struct IconButton<S: 'static + Send + Sync> {
     state_type: PhantomData<S>,

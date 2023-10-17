@@ -4,8 +4,8 @@ use gpui3::{div, Div, SharedString};
 
 use crate::theme::theme;
 use crate::{
-    h_stack, token, v_stack, Avatar, Icon, IconButton, IconColor, IconElement, IconSize, Label,
-    LabelColor, LabelSize,
+    h_stack, token, v_stack, Avatar, ClickHandler, Icon, IconButton, IconColor, IconElement,
+    IconSize, Label, LabelColor, LabelSize,
 };
 use crate::{prelude::*, Stack};
 
@@ -22,17 +22,16 @@ pub struct ListHeaderTool<S: 'static + Send + Sync + Clone> {
     state_type: PhantomData<S>,
     icon: Icon,
     tooltip: SharedString,
-    // TODO: Pass the handlers through to the button here.
-    handlers: SharedString,
+    handler: ClickHandler<S>,
 }
 
 impl<S: 'static + Send + Sync + Clone> ListHeaderTool<S> {
-    pub fn new(icon: Icon, tooltip: SharedString, handlers: SharedString) -> Self {
+    pub fn new(icon: Icon, tooltip: SharedString, handler: ClickHandler<S>) -> Self {
         Self {
             state_type: PhantomData,
             icon,
             tooltip,
-            handlers,
+            handler,
         }
     }
 
@@ -41,8 +40,8 @@ impl<S: 'static + Send + Sync + Clone> ListHeaderTool<S> {
         self
     }
 
-    pub fn handlers(mut self, handlers: SharedString) -> Self {
-        self.handlers = handlers;
+    pub fn handler(mut self, handler: ClickHandler<S>) -> Self {
+        self.handler = handler;
         self
     }
 
@@ -52,7 +51,11 @@ impl<S: 'static + Send + Sync + Clone> ListHeaderTool<S> {
 
         h_stack()
             .group("")
-            .child(IconButton::new(self.icon).color(IconColor::Muted))
+            .child(
+                IconButton::new(self.icon)
+                    .color(IconColor::Muted)
+                    .on_click(self.handler.into()),
+            )
             .child(div())
     }
 }
