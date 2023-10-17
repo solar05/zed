@@ -1,7 +1,7 @@
 use chrono::DateTime;
 use gpui3::{px, relative, view, Context, Size, View};
 
-use crate::{prelude::*, Button, NotificationToast, NotificationsPanel};
+use crate::{prelude::*, NotificationsPanel};
 use crate::{
     theme, v_stack, AssistantPanel, ChatMessage, ChatPanel, CollabPanel, EditorPane, Label,
     LanguageSelector, Pane, PaneGroup, Panel, PanelAllowedSides, PanelSide, ProjectPanel,
@@ -30,13 +30,13 @@ impl Workspace {
         Self {
             title_bar: TitleBar::view(cx),
             editor_1: EditorPane::view(cx),
-            show_project_panel: true,
+            show_project_panel: false,
             show_collab_panel: false,
             show_chat_panel: false,
             show_assistant_panel: false,
-            show_terminal: true,
+            show_terminal: false,
             show_language_selector: false,
-            show_notifications_panel: false,
+            show_notifications_panel: true,
             left_panel_scroll_state: ScrollState::default(),
             right_panel_scroll_state: ScrollState::default(),
             tab_bar_scroll_state: ScrollState::default(),
