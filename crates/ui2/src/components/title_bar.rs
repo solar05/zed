@@ -24,6 +24,7 @@ pub struct TitleBar {
     mic_status: MicStatus,
     is_deafened: bool,
     screen_share_status: ScreenShareStatus,
+    notifications_open: bool,
 }
 
 impl TitleBar {
@@ -43,12 +44,17 @@ impl TitleBar {
             mic_status: MicStatus::Unmuted,
             is_deafened: false,
             screen_share_status: ScreenShareStatus::NotShared,
+            notifications_open: false,
         }
     }
 
     pub fn set_livestream(mut self, livestream: Option<Livestream>) -> Self {
         self.livestream = livestream;
         self
+    }
+
+    pub fn toggle_notifications(&mut self) {
+        self.notifications_open = !self.notifications_open;
     }
 
     pub fn is_mic_muted(&self) -> bool {
@@ -140,7 +146,7 @@ impl TitleBar {
                             .items_center()
                             .gap_1()
                             .child(IconButton::new(Icon::FolderX))
-                            .child(IconButton::new(Icon::Close)),
+                            .child(IconButton::new(Icon::Exit)),
                     )
                     .child(ToolDivider::new())
                     .child(
@@ -171,10 +177,19 @@ impl TitleBar {
                             ),
                     )
                     .child(
-                        div().px_2().flex().items_center().child(
-                            Avatar::new("https://avatars.githubusercontent.com/u/1714999?v=4")
-                                .shape(Shape::RoundedRectangle),
-                        ),
+                        div()
+                            .px_2()
+                            .flex()
+                            .items_center()
+                            .gap_1()
+                            .child(
+                                IconButton::<TitleBar>::new(Icon::Bell)
+                                    .on_click(|title_bar, cx| title_bar.toggle_notifications()),
+                            )
+                            .child(
+                                Avatar::new("https://avatars.githubusercontent.com/u/1714999?v=4")
+                                    .shape(Shape::RoundedRectangle),
+                            ),
                     ),
             )
     }

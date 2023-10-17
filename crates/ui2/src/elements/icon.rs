@@ -44,7 +44,7 @@ impl IconColor {
     }
 }
 
-#[derive(Default, PartialEq, Copy, Clone, EnumIter)]
+#[derive(PartialEq, Copy, Clone, EnumIter)]
 pub enum Icon {
     Ai,
     ArrowLeft,
@@ -52,6 +52,7 @@ pub enum Icon {
     ArrowUpRight,
     AudioOff,
     AudioOn,
+    Bell,
     Bolt,
     ChevronDown,
     ChevronLeft,
@@ -60,6 +61,7 @@ pub enum Icon {
     Close,
     Check,
     ExclamationTriangle,
+    Exit,
     File,
     FileGeneric,
     FileDoc,
@@ -71,7 +73,6 @@ pub enum Icon {
     Folder,
     FolderOpen,
     FolderX,
-    #[default]
     Hash,
     InlayHint,
     MagicWand,
@@ -104,6 +105,7 @@ impl Icon {
             Icon::ArrowUpRight => "icons/arrow_up_right.svg",
             Icon::AudioOff => "icons/speaker-off.svg",
             Icon::AudioOn => "icons/speaker-loud.svg",
+            Icon::Bell => "icons/bell.svg",
             Icon::Bolt => "icons/bolt.svg",
             Icon::ChevronDown => "icons/chevron_down.svg",
             Icon::ChevronLeft => "icons/chevron_left.svg",
@@ -112,6 +114,7 @@ impl Icon {
             Icon::Close => "icons/x.svg",
             Icon::Check => "icons/check.svg",
             Icon::ExclamationTriangle => "icons/warning.svg",
+            Icon::Exit => "icons/exit.svg",
             Icon::File => "icons/file.svg",
             Icon::FileGeneric => "icons/file_icons/file.svg",
             Icon::FileDoc => "icons/file_icons/book.svg",
