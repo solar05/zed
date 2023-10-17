@@ -1,6 +1,6 @@
 use std::marker::PhantomData;
 
-use crate::{prelude::*, static_notification_items};
+use crate::{prelude::*, static_notification_items, Icon, ListHeaderTool};
 use crate::{theme, Input, List, ListHeader};
 
 #[derive(Element)]
@@ -36,12 +36,22 @@ impl<S: 'static + Send + Sync + Clone> NotificationsPanel<S> {
                     .overflow_y_scroll(ScrollState::default())
                     .child(
                         List::new(static_notification_items())
-                            .header(ListHeader::new("NOTIFICATIONS"))
+                            .header(ListHeader::new("NOTIFICATIONS").set_tools(Some(vec![
+                                ListHeaderTool::new(
+                                    Icon::BellSlash,
+                                    "Mute Notifications".into(),
+                                    "mute notifications".into(),
+                                ),
+                                ListHeaderTool::new(
+                                    Icon::MailOpen,
+                                    "Mark all as read".into(),
+                                    "mark all as read action".into(),
+                                ),
+                            ])))
                             .set_toggleable(Toggleable::NotToggleable)
                             .empty_message("No unread notifications."),
                     ),
             )
-            .child(Input::new("Filter Notifications...").state(InteractionState::Enabled))
     }
 }
 

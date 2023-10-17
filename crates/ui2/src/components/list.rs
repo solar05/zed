@@ -1,13 +1,13 @@
 use std::marker::PhantomData;
 
-use gpui3::{div, Div};
+use gpui3::{div, Div, SharedString};
 
-use crate::prelude::*;
 use crate::theme::theme;
 use crate::{
-    h_stack, token, v_stack, Avatar, Icon, IconColor, IconElement, IconSize, Label, LabelColor,
-    LabelSize,
+    h_stack, token, v_stack, Avatar, Icon, IconButton, IconColor, IconElement, IconSize, Label,
+    LabelColor, LabelSize,
 };
+use crate::{prelude::*, Stack};
 
 #[derive(Clone, Copy, Default, Debug, PartialEq)]
 pub enum ListItemVariant {
@@ -18,6 +18,46 @@ pub enum ListItemVariant {
 }
 
 #[derive(Element, Clone)]
+pub struct ListHeaderTool<S: 'static + Send + Sync + Clone> {
+    state_type: PhantomData<S>,
+    icon: Icon,
+    tooltip: SharedString,
+    // TODO: Pass the handlers through to the button here.
+    handlers: SharedString,
+}
+
+impl<S: 'static + Send + Sync + Clone> ListHeaderTool<S> {
+    pub fn new(icon: Icon, tooltip: SharedString, handlers: SharedString) -> Self {
+        Self {
+            state_type: PhantomData,
+            icon,
+            tooltip,
+            handlers,
+        }
+    }
+
+    pub fn tooltip(mut self, tooltip: SharedString) -> Self {
+        self.tooltip = tooltip;
+        self
+    }
+
+    pub fn handlers(mut self, handlers: SharedString) -> Self {
+        self.handlers = handlers;
+        self
+    }
+
+    fn render(&mut self, _view: &mut S, cx: &mut ViewContext<S>) -> impl Element<ViewState = S> {
+        let theme = theme(cx);
+        let token = token();
+
+        h_stack()
+            .group("")
+            .child(IconButton::new(self.icon).color(IconColor::Muted))
+            .child(div())
+    }
+}
+
+#[derive(Element, Clone)]
 pub struct ListHeader<S: 'static + Send + Sync + Clone> {
     state_type: PhantomData<S>,
     label: &'static str,
@@ -25,6 +65,7 @@ pub struct ListHeader<S: 'static + Send + Sync + Clone> {
     variant: ListItemVariant,
     state: InteractionState,
     toggleable: Toggleable,
+    tools: Option<Vec<ListHeaderTool<S>>>,
 }
 
 impl<S: 'static + Send + Sync + Clone> ListHeader<S> {
@@ -36,6 +77,7 @@ impl<S: 'static + Send + Sync + Clone> ListHeader<S> {
             variant: ListItemVariant::default(),
             state: InteractionState::default(),
             toggleable: Toggleable::Toggleable(ToggleState::Toggled),
+            tools: None,
         }
     }
 
@@ -51,6 +93,11 @@ impl<S: 'static + Send + Sync + Clone> ListHeader<S> {
 
     pub fn set_left_icon(mut self, left_icon: Option<Icon>) -> Self {
         self.left_icon = left_icon;
+        self
+    }
+
+    pub fn set_tools(mut self, tools: Option<Vec<ListHeaderTool<S>>>) -> Self {
+        self.tools = tools;
         self
     }
 
@@ -120,6 +167,7 @@ impl<S: 'static + Send + Sync + Clone> ListHeader<S> {
                     .w_full()
                     .gap_1()
                     .items_center()
+                    .justify_between()
                     .child(
                         div()
                             .flex()
@@ -134,9 +182,20 @@ impl<S: 'static + Send + Sync + Clone> ListHeader<S> {
                                 Label::new(self.label)
                                     .color(LabelColor::Muted)
                                     .size(LabelSize::Small),
-                            ),
+                            )
+                            .child(disclosure_control),
                     )
-                    .child(disclosure_control),
+                    .when(self.tools.is_some(), |this| {
+                        this.child(
+                            div().h_stack().gap_1().children(
+                                self.tools
+                                    .as_mut()
+                                    .unwrap()
+                                    .iter_mut()
+                                    .map(|tool| tool.render(_view, cx)),
+                            ),
+                        )
+                    }),
             )
     }
 }
