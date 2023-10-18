@@ -1,4 +1,5 @@
 use std::marker::PhantomData;
+use std::sync::Arc;
 
 use crate::{prelude::*, static_notification_items, Icon, ListHeaderTool};
 use crate::{theme, Input, List, ListHeader};
@@ -40,12 +41,12 @@ impl<S: 'static + Send + Sync + Clone> NotificationsPanel<S> {
                                 ListHeaderTool::new(
                                     Icon::BellSlash,
                                     "Mute Notifications".into(),
-                                    "mute notifications".into(),
+                                    Arc::new(|_, _| println!("mute notifications")),
                                 ),
                                 ListHeaderTool::new(
                                     Icon::MailOpen,
                                     "Mark all as read".into(),
-                                    "mark all as read action".into(),
+                                    Arc::new(|_, _| println!("mark all as read action")),
                                 ),
                             ])))
                             .set_toggleable(Toggleable::NotToggleable)

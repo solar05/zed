@@ -115,18 +115,18 @@ impl StatusBar {
                     .when(workspace.is_project_panel_open(), |this| {
                         this.color(IconColor::Accent)
                     })
-                    .on_click(|workspace, cx| {
+                    .on_click(Arc::new(|workspace, cx| {
                         workspace.toggle_project_panel(cx);
-                    }),
+                    })),
             )
             .child(
                 IconButton::<Workspace>::new(Icon::Hash)
                     .when(workspace.is_collab_panel_open(), |this| {
                         this.color(IconColor::Accent)
                     })
-                    .on_click(|workspace, cx| {
+                    .on_click(Arc::new(|workspace, cx| {
                         workspace.toggle_collab_panel();
-                    }),
+                    })),
             )
             .child(ToolDivider::new())
             .child(IconButton::new(Icon::XCircle))
@@ -161,11 +161,11 @@ impl StatusBar {
                     .gap_1()
                     .child(
                         IconButton::new(Icon::Copilot)
-                            .on_click(|_, _| println!("Copilot clicked.")),
+                            .on_click(Arc::new(|_, _| println!("Copilot clicked."))),
                     )
                     .child(
                         IconButton::new(Icon::Envelope)
-                            .on_click(|_, _| println!("Send Feedback clicked.")),
+                            .on_click(Arc::new(|_, _| println!("Send Feedback clicked."))),
                     ),
             )
             .child(ToolDivider::new())
@@ -179,27 +179,27 @@ impl StatusBar {
                             .when(workspace.is_terminal_open(), |this| {
                                 this.color(IconColor::Accent)
                             })
-                            .on_click(|workspace, cx| {
+                            .on_click(Arc::new(|workspace, cx| {
                                 workspace.toggle_terminal(cx);
-                            }),
+                            })),
                     )
                     .child(
                         IconButton::<Workspace>::new(Icon::MessageBubbles)
                             .when(workspace.is_chat_panel_open(), |this| {
                                 this.color(IconColor::Accent)
                             })
-                            .on_click(|workspace, cx| {
+                            .on_click(Arc::new(|workspace, cx| {
                                 workspace.toggle_chat_panel(cx);
-                            }),
+                            })),
                     )
                     .child(
                         IconButton::<Workspace>::new(Icon::Ai)
                             .when(workspace.is_assistant_panel_open(), |this| {
                                 this.color(IconColor::Accent)
                             })
-                            .on_click(|workspace, cx| {
+                            .on_click(Arc::new(|workspace, cx| {
                                 workspace.toggle_assistant_panel(cx);
-                            }),
+                            })),
                     ),
             )
     }

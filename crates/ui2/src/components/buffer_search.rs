@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use gpui3::{view, Context, View};
 
 use crate::prelude::*;
@@ -38,9 +40,9 @@ impl BufferSearch {
                     .child(
                         IconButton::<Self>::new(Icon::Replace)
                             .when(self.is_replace_open, |this| this.color(IconColor::Accent))
-                            .on_click(|buffer_search, cx| {
+                            .on_click(Arc::new(|buffer_search, cx| {
                                 buffer_search.toggle_replace(cx);
-                            }),
+                            })),
                     ),
             )
     }

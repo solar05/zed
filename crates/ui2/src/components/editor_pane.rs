@@ -1,4 +1,5 @@
 use std::path::PathBuf;
+use std::sync::Arc;
 
 use gpui3::{view, Context, View};
 
@@ -66,9 +67,9 @@ impl EditorPane {
                             .when(self.is_buffer_search_open, |this| {
                                 this.color(IconColor::Accent)
                             })
-                            .on_click(|editor, cx| {
+                            .on_click(Arc::new(|editor, cx| {
                                 editor.toggle_buffer_search(cx);
-                            }),
+                            })),
                         IconButton::new(Icon::MagicWand),
                     ]),
             )

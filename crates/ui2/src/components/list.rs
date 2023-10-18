@@ -54,7 +54,7 @@ impl<S: 'static + Send + Sync + Clone> ListHeaderTool<S> {
             .child(
                 IconButton::new(self.icon)
                     .color(IconColor::Muted)
-                    .on_click(self.handler.into()),
+                    .on_click(self.handler.clone()),
             )
             .child(div())
     }

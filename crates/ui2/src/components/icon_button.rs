@@ -1,5 +1,4 @@
 use std::marker::PhantomData;
-use std::sync::Arc;
 
 use gpui3::{Interactive, MouseButton};
 
@@ -19,7 +18,7 @@ impl<S: 'static + Send + Sync> Default for IconButtonHandlers<S> {
 impl<S: 'static + Send + Sync> From<ClickHandler<S>> for IconButtonHandlers<S> {
     fn from(handler: ClickHandler<S>) -> Self {
         Self {
-            click: Some(Arc::new(handler)),
+            click: Some(handler),
         }
     }
 }
@@ -66,11 +65,8 @@ impl<S: 'static + Send + Sync> IconButton<S> {
         self
     }
 
-    pub fn on_click(
-        mut self,
-        handler: impl Fn(&mut S, &mut ViewContext<S>) + 'static + Send + Sync,
-    ) -> Self {
-        self.handlers.click = Some(Arc::new(handler));
+    pub fn on_click(mut self, handler: ClickHandler<S>) -> Self {
+        self.handlers.click = Some(handler);
         self
     }
 
