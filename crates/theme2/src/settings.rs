@@ -1,6 +1,6 @@
 use crate::{Theme, ThemeRegistry};
 use anyhow::Result;
-use gpui2::{px, AppContext, Font, FontFeatures, FontStyle, FontWeight, Pixels};
+use gpui2::{px, AppContext, Font, FontFeatures, FontStyle, FontWeight, Pixels, SharedString};
 use schemars::{
     gen::SchemaGenerator,
     schema::{InstanceType, Schema, SchemaObject},
@@ -20,7 +20,7 @@ pub struct ThemeSettings {
     pub buffer_font: Font,
     pub buffer_font_size: Pixels,
     pub buffer_line_height: BufferLineHeight,
-    pub theme: Arc<Theme>,
+    pub active_theme: SharedString,
 }
 
 #[derive(Default)]
@@ -112,8 +112,6 @@ impl settings2::Setting for ThemeSettings {
         user_values: &[&Self::FileContent],
         cx: &mut AppContext,
     ) -> Result<Self> {
-        let themes = cx.default_global::<Arc<ThemeRegistry>>();
-
         let mut this = Self {
             buffer_font: Font {
                 family: defaults.buffer_font_family.clone().unwrap().into(),
@@ -123,7 +121,7 @@ impl settings2::Setting for ThemeSettings {
             },
             buffer_font_size: defaults.buffer_font_size.unwrap().into(),
             buffer_line_height: defaults.buffer_line_height.unwrap(),
-            theme: themes.get(defaults.theme.as_ref().unwrap()).unwrap(),
+            active_theme: defaults.theme.clone().unwrap().into(),
         };
 
         for value in user_values.into_iter().copied().cloned() {
@@ -134,10 +132,8 @@ impl settings2::Setting for ThemeSettings {
                 this.buffer_font.features = value;
             }
 
-            if let Some(value) = &value.theme {
-                if let Some(theme) = themes.get(value).log_err() {
-                    this.theme = theme;
-                }
+            if let Some(value) = value.theme {
+                this.active_theme = value.into();
             }
 
             merge(&mut this.buffer_font_size, value.buffer_font_size.map(Into::into));
@@ -156,6 +152,7 @@ impl settings2::Setting for ThemeSettings {
         let theme_names = cx
             .global::<Arc<ThemeRegistry>>()
             .list_names(params.staff_mode)
+            .into_iter()
             .map(|theme_name| Value::String(theme_name.to_string()))
             .collect();
 

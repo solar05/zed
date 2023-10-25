@@ -48,9 +48,9 @@ pub fn test_settings() -> String {
 }
 
 pub fn watch_config_file(
-    executor: &Executor,
-    fs: Arc<dyn Fs>,
     path: PathBuf,
+    fs: Arc<dyn Fs>,
+    executor: &Executor,
 ) -> mpsc::UnboundedReceiver<String> {
     let (tx, rx) = mpsc::unbounded();
     executor

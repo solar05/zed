@@ -3,7 +3,7 @@ use parking_lot::Mutex;
 use std::{fmt::Debug, mem, sync::Arc};
 use util::post_inc;
 
-pub(crate) struct SubscriberSet<EmitterKey, Callback>(
+pub struct SubscriberSet<EmitterKey, Callback>(
     Arc<Mutex<SubscriberSetState<EmitterKey, Callback>>>,
 );
 

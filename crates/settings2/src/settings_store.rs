@@ -1,6 +1,6 @@
 use anyhow::{anyhow, Context, Result};
 use collections::{btree_map, hash_map, BTreeMap, HashMap};
-use gpui2::AppContext;
+use gpui2::{AppContext, SubscriberSet, Subscription};
 use lazy_static::lazy_static;
 use schemars::{gen::SchemaGenerator, schema::RootSchema, JsonSchema};
 use serde::{de::DeserializeOwned, Deserialize as _, Serialize};
@@ -14,6 +14,8 @@ use std::{
     sync::Arc,
 };
 use util::{merge_non_null_json_value_into, RangeExt, ResultExt as _};
+
+use crate::watch_config_file;
 
 /// A value that can be defined as a user setting.
 ///
@@ -93,6 +95,7 @@ pub struct SettingsStore {
         TypeId,
         Box<dyn Fn(&dyn Any) -> Option<usize> + Send + Sync + 'static>,
     )>,
+    global_observers: SubscriberSet<TypeId, Box<dyn Fn(&dyn Any, Option<&dyn Any>) + Send + Sync>>,
 }
 
 impl Default for SettingsStore {
@@ -103,6 +106,7 @@ impl Default for SettingsStore {
             raw_user_settings: serde_json::json!({}),
             raw_local_settings: Default::default(),
             tab_size_callback: Default::default(),
+            global_observers: SubscriberSet::new(),
         }
     }
 }
@@ -116,6 +120,7 @@ struct SettingValue<T> {
 trait AnySettingValue: 'static + Send + Sync {
     fn key(&self) -> Option<&'static str>;
     fn setting_type_name(&self) -> &'static str;
+    fn setting_type_id(&self) -> TypeId;
     fn deserialize_setting(&self, json: &serde_json::Value) -> Result<DeserializedSetting>;
     fn load_setting(
         &self,
@@ -124,7 +129,7 @@ trait AnySettingValue: 'static + Send + Sync {
         cx: &mut AppContext,
     ) -> Result<Box<dyn Any>>;
     fn value_for_path(&self, path: Option<(usize, &Path)>) -> &dyn Any;
-    fn set_global_value(&mut self, value: Box<dyn Any>);
+    fn set_global_value(&mut self, value: Box<dyn Any>) -> Option<Box<dyn Any>>;
     fn set_local_value(&mut self, root_id: usize, path: Arc<Path>, value: Box<dyn Any>);
     fn json_schema(
         &self,
@@ -168,7 +173,12 @@ impl SettingsStore {
                 .context("A default setting must be added to the `default.json` file")
                 .log_err()
             {
-                setting_value.set_global_value(setting);
+                let old_value = setting_value.set_global_value(setting);
+                self.global_observers
+                    .retain(&setting_value.setting_type_id(), |listener| {
+                        listener(setting_value.value_for_path(None), old_value.as_deref());
+                        true
+                    });
             }
         }
     }
@@ -186,6 +196,22 @@ impl SettingsStore {
             .expect("no default value for setting type")
     }
 
+    pub fn observe_global<T: Setting>(
+        &mut self,
+        listener: impl 'static + Fn(&T, Option<&T>) + Send + Sync,
+    ) -> Subscription {
+        self.global_observers.insert(
+            TypeId::of::<T>(),
+            Box::new(move |setting, old_setting| {
+                let setting = setting.downcast_ref::<T>().unwrap();
+                let old_setting = old_setting
+                    .as_ref()
+                    .map(|old_setting| old_setting.downcast_ref::<T>().unwrap());
+                listener(setting, old_setting);
+            }),
+        )
+    }
+
     /// Override the global value for a setting.
     ///
     /// The given value will be overwritten if the user settings file changes.
@@ -193,7 +219,9 @@ impl SettingsStore {
         self.setting_values
             .get_mut(&TypeId::of::<T>())
             .unwrap_or_else(|| panic!("unregistered setting type {}", type_name::<T>()))
-            .set_global_value(Box::new(value))
+            .set_global_value(Box::new(value));
+
+
     }
 
     /// Get the user's settings as a raw JSON value.
@@ -481,7 +509,12 @@ impl SettingsStore {
                     .load_setting(&default_settings, &user_settings_stack, cx)
                     .log_err()
                 {
-                    setting_value.set_global_value(value);
+                    let old_value = setting_value.set_global_value(value);
+                    self.global_observers
+                        .retain(&setting_value.setting_type_id(), |listener| {
+                            listener(setting_value.value_for_path(None), old_value.as_deref());
+                            true
+                        });
                 }
             }
 
@@ -553,6 +586,10 @@ impl<T: Setting> AnySettingValue for SettingValue<T> {
         type_name::<T>()
     }
 
+    fn setting_type_id(&self) -> TypeId {
+        TypeId::of::<T>()
+    }
+
     fn load_setting(
         &self,
         default_value: &DeserializedSetting,
@@ -593,8 +630,10 @@ impl<T: Setting> AnySettingValue for SettingValue<T> {
             .unwrap_or_else(|| panic!("no default value for setting {}", self.setting_type_name()))
     }
 
-    fn set_global_value(&mut self, value: Box<dyn Any>) {
+    fn set_global_value(&mut self, value: Box<dyn Any>) -> Option<Box<dyn Any>> {
+        let old_value = self.global_value.take();
         self.global_value = Some(*value.downcast().unwrap());
+        old_value.map(|old_value| Box::new(old_value) as Box<dyn Any>)
     }
 
     fn set_local_value(&mut self, root_id: usize, path: Arc<Path>, value: Box<dyn Any>) {

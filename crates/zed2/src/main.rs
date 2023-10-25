@@ -69,9 +69,9 @@ fn main() {
 
     let fs = Arc::new(RealFs);
     let user_settings_file_rx =
-        watch_config_file(&app.executor(), fs.clone(), paths::SETTINGS.clone());
+        watch_config_file(paths::SETTINGS.clone(), fs.clone(), &app.executor(), );
     let _user_keymap_file_rx =
-        watch_config_file(&app.executor(), fs.clone(), paths::KEYMAP.clone());
+        watch_config_file(paths::KEYMAP.clone(), fs.clone(), &app.executor(), );
 
     let login_shell_env_loaded = if stdout_is_a_pty() {
         Task::ready(())
