@@ -1462,16 +1462,15 @@ impl Pane {
         div()
             .group("tab_bar")
             .id("tab_bar")
-            .w_full()
             .flex()
+            .w_full()
             .bg(cx.theme().colors().tab_bar_background)
             // Left Side
             .child(
                 div()
-                    .relative()
-                    .px_1()
                     .flex()
                     .flex_none()
+                    .px_1()
                     .gap_2()
                     // Nav Buttons
                     .child(
@@ -1499,15 +1498,18 @@ impl Pane {
                     ),
             )
             .child(
-                div().flex_1().h_full().child(
-                    div().id("tabs").flex().overflow_x_scroll().children(
+                div()
+                    .id("tabs")
+                    .flex()
+                    .flex_1()
+                    .overflow_x_scroll()
+                    .children(
                         self.items
                             .iter()
                             .enumerate()
                             .zip(self.tab_details(cx))
                             .map(|((ix, item), detail)| self.render_tab(ix, item, detail, cx)),
                     ),
-                ),
             )
             // Right Side
             .child(
