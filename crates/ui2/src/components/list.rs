@@ -244,7 +244,7 @@ pub struct ListItem {
     disabled: bool,
     // TODO: Reintroduce this
     // disclosure_control_style: DisclosureControlVisibility,
-    indent_level: u32,
+    indent_level: usize,
     left_slot: Option<GraphicSlot>,
     overflow: OverflowStyle,
     size: ListEntrySize,
@@ -280,7 +280,7 @@ impl ListItem {
         self
     }
 
-    pub fn indent_level(mut self, indent_level: u32) -> Self {
+    pub fn indent_level(mut self, indent_level: usize) -> Self {
         self.indent_level = indent_level;
         self
     }
@@ -332,53 +332,127 @@ impl RenderOnce for ListItem {
             ListEntrySize::Small => div().h_6(),
             ListEntrySize::Medium => div().h_7(),
         };
-        div()
-            .id(self.id)
-            .relative()
-            .hover(|mut style| {
-                style.background = Some(cx.theme().colors().editor_background.into());
-                style
-            })
-            .on_click({
-                let on_click = self.on_click.clone();
-                move |event, cx| {
-                    if let Some(on_click) = &on_click {
+
+        // 2 Problems:
+        // 1. There's somethiing wrong with the ID system
+        // 2. There's something wrong with event dispatch
+
+        // Does not work
+        // if 1 < 2 {
+        //     return div()
+        //         .id(self.id.clone())
+        //         .bg(gpui::red())
+        //         .child("Top-level click meee")
+        //         .when_some(self.on_click, |this, on_click| {
+        //             // this.on_mouse_down(gpui::MouseButton::Left, move |_event, _cx| {
+        //             //     println!("Mousedown");
+        //             // })
+
+        //             this.on_click(move |event, cx| {
+        //                 eprintln!("On click");
+        //                 (on_click)(event, cx)
+        //             })
+        //         });
+        // }
+
+        // Works
+        if 1 < 2 {
+            return div()
+                // .id(self.id.clone())
+                .id("outer_div")
+                .bg(gpui::red())
+                .when_some(self.on_click.clone(), |this, on_click| {
+                    this.on_click(move |event, cx| {
+                        eprintln!("On click outer");
                         (on_click)(event, cx)
-                    }
-                }
+                    })
+                })
+                .child(
+                    div()
+                        // .id(self.id.clone())
+                        .id("nested_on_click")
+                        .child("Nested click meee")
+                        .when_some(self.on_click, |this, on_click| {
+                            this.on_click(move |event, cx| {
+                                eprintln!("On click inner");
+                                (on_click)(event, cx)
+                            })
+                        }),
+                );
+        }
+
+        h_stack()
+            .id(self.id.clone())
+            // .flex()
+            .w_full()
+            .map(|this| match self.size {
+                ListEntrySize::Small => this.h_6(),
+                ListEntrySize::Medium => this.h_7(),
             })
+            .ml(gpui::rems(0.75 * self.indent_level as f32))
+            // .hover(|mut style| {
+            //     style.background = Some(cx.theme().colors().editor_background.into());
+            //     style
+            // })
+            // .bg(gpui::red())
+            // .when_some(self.on_click, |this, on_click| {
+            //     this.on_click(move |event, cx| {
+            //         eprintln!("On click");
+            //         (on_click)(event, cx)
+            //     })
+            // })
+            // .on_click({
+            //     let on_click = self.on_click.clone();
+            //     move |event, cx| {
+            //         eprintln!("click");
+            //         if let Some(on_click) = &on_click {
+            //             eprintln!("on_click");
+            //             (on_click)(event, cx)
+            //         }
+            //     }
+            // })
             // TODO: Add focus state
             // .when(self.state == InteractionState::Focused, |this| {
             //     this.border()
             //         .border_color(cx.theme().colors().border_focused)
             // })
-            .hover(|style| style.bg(cx.theme().colors().ghost_element_hover))
-            .active(|style| style.bg(cx.theme().colors().ghost_element_active))
-            .child(
-                sized_item
-                    .when(self.variant == ListItemVariant::Inset, |this| this.px_2())
-                    // .ml(rems(0.75 * self.indent_level as f32))
-                    .children((0..self.indent_level).map(|_| {
-                        div()
-                            .w(px(4.))
-                            .h_full()
-                            .flex()
-                            .justify_center()
-                            .group_hover("", |style| style.bg(cx.theme().colors().border_focused))
-                            .child(
-                                h_stack()
-                                    .child(div().w_px().h_full())
-                                    .child(div().w_px().h_full().bg(cx.theme().colors().border)),
-                            )
-                    }))
-                    .flex()
-                    .gap_1()
-                    .items_center()
-                    .relative()
-                    .child(disclosure_control(self.toggle))
-                    .children(left_content)
-                    .children(self.children),
-            )
+            // .hover(|style| style.bg(cx.theme().colors().ghost_element_hover))
+            // .active(|style| style.bg(cx.theme().colors().ghost_element_active))
+            // .child(disclosure_control(self.toggle))
+            // .children(left_content)
+            .children(self.children)
+            // .when_some(self.on_click, |this, on_click| {
+            //     this.on_click(move |event, cx| {
+            //         eprintln!("On click");
+            //         (on_click)(event, cx)
+            //     })
+            // })
+        // .child(
+        //     div()
+        //         // .id(self.id.clone())
+        //         .when(self.variant == ListItemVariant::Inset, |this| this.px_2())
+        //         // .ml(rems(0.75 * self.indent_level as f32))
+        //         .children((0..self.indent_level).map(|_| {
+        //             div()
+        //                 .w(px(4.))
+        //                 .h_full()
+        //                 .flex()
+        //                 .justify_center()
+        //                 .group_hover("", |style| style.bg(cx.theme().colors().border_focused))
+        //                 .child(
+        //                     h_stack()
+        //                         .child(div().w_px().h_full())
+        //                         .child(div().w_px().h_full().bg(cx.theme().colors().border)),
+        //                 )
+        //         }))
+        //         .flex()
+        //         .gap_1()
+        //         .items_center()
+        //         .relative()
+        //         .child(disclosure_control(self.toggle))
+        //         .children(left_content)
+        //         .children(self.children),
+        // )
     }
 }
 

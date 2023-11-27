@@ -1719,9 +1719,11 @@ pub trait BorrowWindow: BorrowMut<Window> + BorrowMut<AppContext> {
         id: Option<impl Into<ElementId>>,
         f: impl FnOnce(&mut Self) -> R,
     ) -> R {
+        dbg!(id.is_some());
         if let Some(id) = id.map(Into::into) {
+            dbg!(&id);
             let window = self.window_mut();
-            window.element_id_stack.push(id.into());
+            window.element_id_stack.push(id);
             let result = f(self);
             let window: &mut Window = self.borrow_mut();
             window.element_id_stack.pop();
@@ -1805,20 +1807,29 @@ pub trait BorrowWindow: BorrowMut<Window> + BorrowMut<AppContext> {
     where
         S: 'static,
     {
+        dbg!(&id);
         self.with_element_id(Some(id), |cx| {
             let global_id = cx.window().element_id_stack.clone();
+            let any = {
+                let window = cx.window_mut();
 
-            if let Some(any) = cx
-                .window_mut()
-                .current_frame
-                .element_states
-                .remove(&global_id)
-                .or_else(|| {
-                    cx.window_mut()
+                let current_state =  window.current_frame.element_states.keys().collect::<Vec<_>>();
+                let prev_state = window.previous_frame.element_states.keys().collect::<Vec<_>>();
+
+                dbg!(&global_id, current_state, prev_state);
+
+                let result = window.current_frame.element_states.remove(&global_id).or_else(|| {
+                    window
                         .previous_frame
                         .element_states
                         .remove(&global_id)
-                })
+                });
+
+
+                result
+            };
+
+            if let Some(any) = any
             {
                 let ElementStateBox {
                     inner,

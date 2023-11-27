@@ -316,6 +316,7 @@ mod any_view {
     ) -> (LayoutId, AnyElement) {
         let view = view.clone().downcast::<V>().unwrap();
         let mut element = view.update(cx, |view, cx| view.render(cx).into_any());
+        dbg!("DONE LAYING OUT ANY VIEW");
         let layout_id = element.layout(cx);
         (layout_id, element)
     }
@@ -325,6 +326,8 @@ mod any_view {
         element: AnyElement,
         cx: &mut WindowContext,
     ) {
+        dbg!("Starting PAINTING ANY VIEW");
         element.paint(cx);
+        dbg!("DONE PAINTING ANY VIEW");
     }
 }

@@ -12,8 +12,8 @@ impl Render for ListItemStory {
     fn render(&mut self, cx: &mut ViewContext<Self>) -> Self::Element {
         Story::container()
             .child(Story::title_for::<ListItem>())
-            .child(Story::label("Default"))
-            .child(ListItem::new("hello_world").child("Hello, world!"))
+            // .child(Story::label("Default"))
+            // .child(ListItem::new("hello_world").child("Hello, world!"))
             .child(Story::label("With `on_click`"))
             .child(
                 ListItem::new("with_on_click")

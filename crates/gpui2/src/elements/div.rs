@@ -588,6 +588,7 @@ impl Element for Div {
         element_state: Option<Self::State>,
         cx: &mut WindowContext,
     ) -> (LayoutId, Self::State) {
+        dbg!(self.element_id(), element_state.is_none());
         let mut child_layout_ids = SmallVec::new();
         let mut interactivity = mem::take(&mut self.interactivity);
         let (layout_id, interactive_state) = interactivity.layout(
@@ -840,10 +841,10 @@ impl Interactivity {
 
         let click_listeners = mem::take(&mut self.click_listeners);
         let drag_listener = mem::take(&mut self.drag_listener);
-
         if !click_listeners.is_empty() || drag_listener.is_some() {
             let pending_mouse_down = element_state.pending_mouse_down.clone();
             let mouse_down = pending_mouse_down.borrow().clone();
+            dbg!(&mouse_down);
             if let Some(mouse_down) = mouse_down {
                 if let Some(drag_listener) = drag_listener {
                     let active_state = element_state.clicked_state.clone();
@@ -868,6 +869,11 @@ impl Interactivity {
                 }
 
                 cx.on_mouse_event(move |event: &MouseUpEvent, phase, cx| {
+                    dbg!(
+                        "Mouse Up event for click handler",
+                        phase,
+                        bounds.contains_point(&event.position)
+                    );
                     if phase == DispatchPhase::Bubble && bounds.contains_point(&event.position) {
                         let mouse_click = ClickEvent {
                             down: mouse_down.clone(),
@@ -882,6 +888,11 @@ impl Interactivity {
                 });
             } else {
                 cx.on_mouse_event(move |event: &MouseDownEvent, phase, cx| {
+                    dbg!(
+                        "Mouse down event for click handler",
+                        phase,
+                        bounds.contains_point(&event.position)
+                    );
                     if phase == DispatchPhase::Bubble && bounds.contains_point(&event.position) {
                         *pending_mouse_down.borrow_mut() = Some(event.clone());
                         cx.notify();
