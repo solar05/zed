@@ -3588,8 +3588,8 @@ impl Render for Workspace {
                         div()
                             .flex()
                             .flex_row()
-                            .flex_1()
-                            .h_full()
+                            .size_full()
+                            .overflow_hidden()
                             // Left Dock
                             .child(
                                 div()
@@ -3604,6 +3604,7 @@ impl Render for Workspace {
                                     .flex()
                                     .flex_col()
                                     .flex_1()
+                                    .overflow_hidden()
                                     .child(self.center.render(
                                         &self.project,
                                         &self.follower_states,
