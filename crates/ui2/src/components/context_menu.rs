@@ -25,7 +25,8 @@ pub struct ContextMenu {
     focus_handle: FocusHandle,
     selected_index: Option<usize>,
     delayed: bool,
-    _on_blur_subscription: Subscription,
+    #[allow(unused)]
+    on_blur_subscription: Subscription,
 }
 
 impl FocusableView for ContextMenu {
@@ -43,7 +44,7 @@ impl ContextMenu {
     ) -> View<Self> {
         cx.build_view(|cx| {
             let focus_handle = cx.focus_handle();
-            let _on_blur_subscription = cx.on_blur(&focus_handle, |this: &mut ContextMenu, cx| {
+            let on_blur_subscription = cx.on_blur(&focus_handle, |this: &mut ContextMenu, cx| {
                 this.cancel(&menu::Cancel, cx)
             });
             f(
@@ -52,7 +53,7 @@ impl ContextMenu {
                     focus_handle,
                     selected_index: None,
                     delayed: false,
-                    _on_blur_subscription,
+                    on_blur_subscription,
                 },
                 cx,
             )
