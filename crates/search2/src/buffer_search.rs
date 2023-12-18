@@ -10,15 +10,15 @@ use collections::HashMap;
 use editor::Editor;
 use futures::channel::oneshot;
 use gpui::{
-    actions, div, impl_actions, red, Action, AppContext, ClickEvent, Div, EventEmitter,
-    FocusableView, InteractiveElement as _, IntoElement, KeyContext, ParentElement as _, Render,
-    Styled, Subscription, Task, View, ViewContext, VisualContext as _, WindowContext,
+    actions, div, impl_actions, Action, AppContext, ClickEvent, Div, EventEmitter, FocusableView,
+    InteractiveElement as _, IntoElement, KeyContext, ParentElement as _, Render, Styled,
+    Subscription, Task, View, ViewContext, VisualContext as _, WindowContext,
 };
 use project::search::SearchQuery;
 use serde::Deserialize;
 use std::{any::Any, sync::Arc};
 
-use ui::{h_stack, ButtonCommon, Clickable, Icon, IconButton, IconElement, Tooltip};
+use ui::{prelude::*, Tooltip};
 use util::ResultExt;
 use workspace::{
     item::ItemHandle,
@@ -178,104 +178,145 @@ impl Render for BufferSearchBar {
             key_context.add("in_replace");
         }
 
-        h_stack()
-            .key_context(key_context)
-            .on_action(cx.listener(Self::previous_history_query))
-            .on_action(cx.listener(Self::next_history_query))
-            .on_action(cx.listener(Self::dismiss))
-            .on_action(cx.listener(Self::select_next_match))
-            .on_action(cx.listener(Self::select_prev_match))
-            .on_action(cx.listener(|this, _: &ActivateRegexMode, cx| {
-                this.activate_search_mode(SearchMode::Regex, cx);
-            }))
-            .on_action(cx.listener(|this, _: &ActivateTextMode, cx| {
-                this.activate_search_mode(SearchMode::Text, cx);
-            }))
-            .when(self.supported_options().replacement, |this| {
-                this.on_action(cx.listener(Self::toggle_replace))
-                    .when(in_replace, |this| {
-                        this.on_action(cx.listener(Self::replace_next))
-                            .on_action(cx.listener(Self::replace_all))
-                    })
-            })
-            .when(self.supported_options().case, |this| {
-                this.on_action(cx.listener(Self::toggle_case_sensitive))
-            })
-            .when(self.supported_options().word, |this| {
-                this.on_action(cx.listener(Self::toggle_whole_word))
-            })
-            .w_full()
-            .p_1()
-            .child(
-                div()
-                    .flex()
-                    .flex_1()
-                    .border_1()
-                    .border_color(red())
-                    .rounded_md()
-                    .items_center()
-                    .child(IconElement::new(Icon::MagnifyingGlass))
-                    .child(self.query_editor.clone())
-                    .children(supported_options.case.then(|| {
-                        self.render_search_option_button(
-                            SearchOptions::CASE_SENSITIVE,
-                            cx.listener(|this, _, cx| {
-                                this.toggle_case_sensitive(&ToggleCaseSensitive, cx)
-                            }),
-                        )
-                    }))
-                    .children(supported_options.word.then(|| {
-                        self.render_search_option_button(
-                            SearchOptions::WHOLE_WORD,
-                            cx.listener(|this, _, cx| this.toggle_whole_word(&ToggleWholeWord, cx)),
-                        )
-                    })),
-            )
+        v_stack()
+            .gap_1()
             .child(
                 h_stack()
-                    .flex_none()
+                    .gap_2()
+                    .key_context(key_context)
+                    .on_action(cx.listener(Self::previous_history_query))
+                    .on_action(cx.listener(Self::next_history_query))
+                    .on_action(cx.listener(Self::dismiss))
+                    .on_action(cx.listener(Self::select_next_match))
+                    .on_action(cx.listener(Self::select_prev_match))
+                    .on_action(cx.listener(|this, _: &ActivateRegexMode, cx| {
+                        this.activate_search_mode(SearchMode::Regex, cx);
+                    }))
+                    .on_action(cx.listener(|this, _: &ActivateTextMode, cx| {
+                        this.activate_search_mode(SearchMode::Text, cx);
+                    }))
+                    .when(self.supported_options().replacement, |this| {
+                        this.on_action(cx.listener(Self::toggle_replace))
+                            .when(in_replace, |this| {
+                                this.on_action(cx.listener(Self::replace_next))
+                                    .on_action(cx.listener(Self::replace_all))
+                            })
+                    })
+                    .when(self.supported_options().case, |this| {
+                        this.on_action(cx.listener(Self::toggle_case_sensitive))
+                    })
+                    .when(self.supported_options().word, |this| {
+                        this.on_action(cx.listener(Self::toggle_whole_word))
+                    })
+                    .w_full()
+                    .child(
+                        div()
+                            .flex()
+                            .flex_1()
+                            .px_2()
+                            .gap_1()
+                            .rounded_md()
+                            .border()
+                            .border_color(cx.theme().colors().border)
+                            .bg(cx.theme().colors().element_background)
+                            .max_w_1_2()
+                            .justify_between()
+                            .items_center()
+                            .child(
+                                h_stack()
+                                    .px_1()
+                                    .gap_1()
+                                    .child(
+                                        IconElement::new(Icon::MagnifyingGlass).color(Color::Muted),
+                                    )
+                                    .child(self.query_editor.clone()),
+                            )
+                            .child(
+                                h_stack()
+                                    .children(match_count)
+                                    .child(render_nav_button(
+                                        ui::Icon::ChevronLeft,
+                                        self.active_match_index.is_some(),
+                                        "Select previous match",
+                                        &SelectPrevMatch,
+                                    ))
+                                    .child(render_nav_button(
+                                        ui::Icon::ChevronRight,
+                                        self.active_match_index.is_some(),
+                                        "Select next match",
+                                        &SelectNextMatch,
+                                    )),
+                            ),
+                    )
                     .child(
                         h_stack()
-                            .child(search_button_for_mode(SearchMode::Text))
-                            .child(search_button_for_mode(SearchMode::Regex)),
-                    )
-                    .when(supported_options.replacement, |this| {
-                        this.child(super::toggle_replace_button(
-                            self.replace_enabled,
-                            cx.listener(|this, _: &ClickEvent, cx| {
-                                this.toggle_replace(&ToggleReplace, cx);
+                            .flex_none()
+                            .children(supported_options.case.then(|| {
+                                self.render_search_option_button(
+                                    SearchOptions::CASE_SENSITIVE,
+                                    cx.listener(|this, _, cx| {
+                                        this.toggle_case_sensitive(&ToggleCaseSensitive, cx)
+                                    }),
+                                )
+                            }))
+                            .children(supported_options.word.then(|| {
+                                self.render_search_option_button(
+                                    SearchOptions::WHOLE_WORD,
+                                    cx.listener(|this, _, cx| {
+                                        this.toggle_whole_word(&ToggleWholeWord, cx)
+                                    }),
+                                )
+                            }))
+                            .child(
+                                h_stack()
+                                    .child(search_button_for_mode(SearchMode::Text))
+                                    .child(search_button_for_mode(SearchMode::Regex)),
+                            )
+                            .when(supported_options.replacement, |this| {
+                                this.child(super::toggle_replace_button(
+                                    self.replace_enabled,
+                                    cx.listener(|this, _: &ClickEvent, cx| {
+                                        this.toggle_replace(&ToggleReplace, cx);
+                                    }),
+                                ))
                             }),
-                        ))
-                    }),
+                    )
+                    .child(
+                        h_stack()
+                            .gap_0p5()
+                            .flex_none()
+                            .child(self.render_action_button()),
+                    )
+                    // Fill the space in the middle
+                    .child(div().flex_1())
+                    .child(
+                        IconButton::new("close buffer search", Icon::Close)
+                            .icon_color(Color::Muted)
+                            .style(ButtonStyle::Subtle),
+                    ),
             )
             .child(
                 h_stack()
                     .gap_0p5()
                     .flex_1()
                     .when(self.replace_enabled, |this| {
-                        this.child(self.replacement_editor.clone())
-                            .children(replace_next)
-                            .children(replace_all)
+                        this.child(
+                            div()
+                                .flex()
+                                .flex_1()
+                                .gap_1()
+                                .rounded_md()
+                                .px_1()
+                                .border()
+                                .border_color(cx.theme().colors().border)
+                                .bg(cx.theme().colors().element_background)
+                                .items_center()
+                                .child(IconElement::new(Icon::Replace).color(Color::Muted))
+                                .child(self.replacement_editor.clone()),
+                        )
+                        .children(replace_next)
+                        .children(replace_all)
                     }),
-            )
-            .child(
-                h_stack()
-                    .gap_0p5()
-                    .flex_none()
-                    .child(self.render_action_button())
-                    .children(match_count)
-                    .child(render_nav_button(
-                        ui::Icon::ChevronLeft,
-                        self.active_match_index.is_some(),
-                        "Select previous match",
-                        &SelectPrevMatch,
-                    ))
-                    .child(render_nav_button(
-                        ui::Icon::ChevronRight,
-                        self.active_match_index.is_some(),
-                        "Select next match",
-                        &SelectNextMatch,
-                    )),
             )
     }
 }
