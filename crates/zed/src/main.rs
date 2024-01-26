@@ -37,13 +37,14 @@ use std::{
         Arc, Weak,
     },
     thread,
+    time::Duration,
 };
 use theme::ActiveTheme;
 use util::{
     async_maybe,
     channel::{parse_zed_link, AppCommitSha, ReleaseChannel, RELEASE_CHANNEL},
     http::{self, HttpClient},
-    paths::{self, CRASHES_DIR, CRASHES_RETIRED_DIR},
+    paths::{self, CRASHES_DIR, CRASHES_RETIRED_DIR, PLUGINS_DIR},
     ResultExt,
 };
 use uuid::Uuid;
@@ -821,26 +822,28 @@ fn load_embedded_fonts(cx: &AppContext) {
         .unwrap();
 }
 
-#[cfg(debug_assertions)]
-async fn watch_languages(fs: Arc<dyn fs::Fs>, languages: Arc<LanguageRegistry>) -> Option<()> {
-    use std::time::Duration;
+async fn watch_languages(fs: Arc<dyn fs::Fs>, languages: Arc<LanguageRegistry>) {
+    let reload_debounce = Duration::from_millis(250);
 
-    let mut events = fs
-        .watch(
-            "crates/zed/src/languages".as_ref(),
-            Duration::from_millis(100),
+    let mut events = fs.watch(PLUGINS_DIR.as_ref(), reload_debounce).await;
+
+    #[cfg(debug_assertions)]
+    {
+        events = futures::stream::select(
+            events,
+            fs.watch("crates/zed/src/languages".as_ref(), reload_debounce)
+                .await,
         )
-        .await;
+        .boxed();
+    }
+
     while (events.next().await).is_some() {
         languages.reload();
     }
-    Some(())
 }
 
 #[cfg(debug_assertions)]
 fn watch_file_types(fs: Arc<dyn fs::Fs>, cx: &mut AppContext) {
-    use std::time::Duration;
-
     cx.spawn(|cx| async move {
         let mut events = fs
             .watch(
@@ -858,11 +861,6 @@ fn watch_file_types(fs: Arc<dyn fs::Fs>, cx: &mut AppContext) {
         }
     })
     .detach()
-}
-
-#[cfg(not(debug_assertions))]
-async fn watch_languages(_: Arc<dyn fs::Fs>, _: Arc<LanguageRegistry>) -> Option<()> {
-    None
 }
 
 #[cfg(not(debug_assertions))]
