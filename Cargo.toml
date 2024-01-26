@@ -163,7 +163,7 @@ tree-sitter-vue = {git = "https://github.com/zed-industries/tree-sitter-vue", re
 tree-sitter-uiua = {git = "https://github.com/shnarazk/tree-sitter-uiua", rev = "9260f11be5900beda4ee6d1a24ab8ddfaf5a19b2"}
 
 [patch.crates-io]
-tree-sitter = { git = "https://github.com/tree-sitter/tree-sitter", rev = "31c40449749c4263a91a43593831b82229049a4c" }
+tree-sitter = { git = "https://github.com/tree-sitter/tree-sitter", rev = "c4142737ece40316fc1046dcfafa6b9ee65d949b" }
 wasmtime = { git = "https://github.com/bytecodealliance/wasmtime", rev = "v16.0.0" }
 
 [profile.dev]
